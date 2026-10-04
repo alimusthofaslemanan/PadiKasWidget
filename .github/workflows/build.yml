@@ -19,13 +19,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Terima lisensi Android SDK bawaan runner
+      # Inject lisensi Android SDK langsung tanpa perlu download/running sdkmanager
       - name: Accept Android SDK Licenses
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          mkdir -p $ANDROID_HOME/licenses
+          echo "2433370235555b00596a3222796816285d361324" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-arm-dls-license
 
-      # Jalankan build Gradle (sesuaikan direktori jika proyek menggunakan Capacitor/Cordova/React Native)
-      - name: Build Android APK
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Debug APK
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
