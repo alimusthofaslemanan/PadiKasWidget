@@ -27,14 +27,18 @@ jobs:
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-arm-dls-license
 
-      # Otomatis masuk ke folder android jika ada, lalu jalankan Gradle
+      # Menggunakan gradlew jika ada, atau gunakan sistem gradle langsung
       - name: Build Debug APK
         run: |
           if [ -d "android" ]; then cd android; fi
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            gradle assembleDebug
+          fi
 
-      # Mengunggah file APK agar bisa didownload dari halaman Actions
+      # Mengunggah hasil APK
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
