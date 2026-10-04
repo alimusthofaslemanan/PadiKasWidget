@@ -13,13 +13,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # Lisensi Android SDK
+      # 1. Install package Node.js & build Web
+      - name: Install & Build Web
+        run: |
+          npm install
+          npm run build
+
+      # 2. Generate/Sync folder Android via Capacitor
+      - name: Sync Capacitor Android
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      # 3. Lisensi Android SDK
       - name: Accept Android SDK Licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
@@ -27,21 +46,16 @@ jobs:
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-arm-dls-license
 
-      # Menggunakan gradlew jika ada, atau gunakan sistem gradle langsung
+      # 4. Build APK dari folder android
       - name: Build Debug APK
         run: |
-          if [ -d "android" ]; then cd android; fi
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            gradle assembleDebug
-          fi
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      # Mengunggah hasil APK
+      # 5. Simpan APK agar bisa di-download
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PadiKasWidget-Debug-APK
-          path: |
-            **/build/outputs/apk/debug/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
