@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Inject lisensi Android SDK langsung tanpa perlu download/running sdkmanager
+      # Lisensi Android SDK
       - name: Accept Android SDK Licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
@@ -27,10 +27,17 @@ jobs:
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > $ANDROID_HOME/licenses/android-sdk-arm-dls-license
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
+      # Otomatis masuk ke folder android jika ada, lalu jalankan Gradle
       - name: Build Debug APK
         run: |
+          if [ -d "android" ]; then cd android; fi
           chmod +x gradlew
           ./gradlew assembleDebug
+
+      # Mengunggah file APK agar bisa didownload dari halaman Actions
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PadiKasWidget-Debug-APK
+          path: |
+            **/build/outputs/apk/debug/*.apk
