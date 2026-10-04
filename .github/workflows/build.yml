@@ -1,49 +1,31 @@
-name: Build PadiKas Widget APK
+name: Build PadiKasWidget APK
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ambil repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Siapkan Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Siapkan Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instal Android SDK 35
+      # Terima lisensi Android SDK bawaan runner
+      - name: Accept Android SDK Licenses
         run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Siapkan Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Ekstrak proyek PadiKas
+      # Jalankan build Gradle (sesuaikan direktori jika proyek menggunakan Capacitor/Cordova/React Native)
+      - name: Build Android APK
         run: |
-          mkdir -p project
-          unzip -q PadiKasWidget-AndroidStudio*.zip -d project
-
-      - name: Build APK
-        working-directory: project/PadiKasWidget
-        run: |
-          gradle assembleDebug --no-daemon
-
-      - name: Simpan APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PadiKasWidget-APK
-          path: project/PadiKasWidget/app/build/outputs/apk/debug/app-debug.apk
+          chmod +x gradlew
+          ./gradlew assembleDebug
